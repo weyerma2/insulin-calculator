@@ -21,8 +21,7 @@
             <input class="form-control" type="file" id="file" name="file" accept="image/*" required>
         </div>
         <div class="mb-3">
-            <label for="weight" class="form-label">Gewicht des Gerichts (g)</label>
-            <input type="number" class="form-control" id="weight" name="weight" min="1" value="250" required>
+            <input type="number" class="form-control" id="weight" name="weight" placeholder="Gewicht in Gramm (z. B. 250)" required min="1">
         </div>
         <button class="btn btn-primary" type="submit">Analysieren</button>
     </form>
@@ -62,10 +61,8 @@
 
     form.addEventListener("submit", async function (e) {
         e.preventDefault();
-
         const file = fileInput.files[0];
         const weight = weightInput.value;
-
         if (!file || !weight) return;
 
         const formData = new FormData();
@@ -91,6 +88,7 @@
             const data = await response.json();
             resultDiv.innerHTML = `
                 <h5>Analyseergebnis</h5>
+                <p>🔎 <strong>Erkanntes Gericht:</strong> ${data.food}</p>
                 <p>🚀 <strong>Kohlenhydrate:</strong> ${data.carbs.toFixed(1)} g</p>
                 <p>💉 <strong>Insulinvorschlag:</strong> ${data.insulin.toFixed(1)} IE</p>
             `;

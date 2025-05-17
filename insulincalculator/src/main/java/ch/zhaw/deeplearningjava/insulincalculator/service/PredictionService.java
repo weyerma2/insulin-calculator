@@ -12,7 +12,6 @@ import ai.djl.repository.zoo.ZooModel;
 import ai.djl.training.util.ProgressBar;
 import ai.djl.translate.TranslateException;
 import ch.zhaw.deeplearningjava.insulincalculator.util.SwissFoodApiClient;
-import ch.zhaw.deeplearningjava.insulincalculator.util.SwissFoodParser;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
 
@@ -23,18 +22,24 @@ import java.nio.file.Paths;
 @Service
 public class PredictionService {
 
+    public record PredictionResult(String food, float carbs) {}
+
     private final SwissFoodApiClient apiClient = new SwissFoodApiClient();
 
-    public float predictCarbs(File imageFile, float weightGrams) throws IOException, ModelException, TranslateException {
+    public PredictionResult predictCarbsWithFood(File imageFile, float portionGrams)
+        throws IOException, ModelException, TranslateException {
         // 🧠 Schritt 1: Bildklassifikation mit DJL
         String predictedFood = runDjlPrediction(imageFile);
         System.out.println("🔍 Vorhergesagtes Gericht: " + predictedFood);
 
-        // 🌐 Schritt 2: API Ninjas abfragen
-        float carbsPer100g = apiClient.searchFood(predictedFood).orElse(30.0f); // fallback
+        // 🌐 Schritt 2: API-Ninjas abfragen
+        Optional<Float> carbsOpt = apiClient.searchFood(predictedFood);
 
-        // 🧮 Schritt 3: Berechnung
-        return (carbsPer100g * weightGrams) / 100f;
+        // 🧮 Schritt 3: Berechnung der KH für Benutzerportion
+        float carbsPer100g = carbsOpt.orElse(30.0f); // Fallbackwert
+        float totalCarbs = (carbsPer100g * portionGrams) / 100f;
+
+        return new PredictionResult(predictedFood, totalCarbs);
     }
 
     private String runDjlPrediction(File imageFile) throws IOException, ModelException, TranslateException {
