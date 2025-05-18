@@ -1,0 +1,12 @@
+services:
+  insulin-calculator:
+    image: insulin-calculator:latest
+    container_name: insulin-calculator
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+    restart: always
